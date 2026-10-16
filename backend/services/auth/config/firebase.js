@@ -1,6 +1,15 @@
-import { cert, initializeApp } from "firebase-admin";
-import serviceAccount from "../serviceAccountKey.json" with {type:"json"};
+import admin from "firebase-admin";
+import { createRequire } from "node:module";
 
-export const app = initializeApp({
-  credential: cert(serviceAccount)
-});
+const require = createRequire(import.meta.url);
+const serviceAccount = require("../serviceAccountKey.json");
+
+const app =
+  admin.apps.length > 0
+    ? admin.app()
+    : admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
+
+export { admin, app };
+export default app;
