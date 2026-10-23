@@ -5,6 +5,9 @@ import api from "../../utils/axios";
 import { FcGoogle } from "react-icons/fc";
 import { useSelector, useDispatch } from 'react-redux';
 import { setUserdata } from '../redux/userSlice';
+import SideBar from "../components/SideBar";
+import ChatArea from "../components/ChatArea";
+import Artifact from "../components/Artifact";
 
 function Home() {
 
@@ -30,6 +33,10 @@ function Home() {
 
   return (
     <div className="h-screen flex bg-[#0d0f14] text-white overflow-hidden">
+
+      <SideBar />
+      <ChatArea />
+      <Artifact />
 
     {!userData && 
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur">

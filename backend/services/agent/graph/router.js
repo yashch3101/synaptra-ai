@@ -1,7 +1,7 @@
 import { getModel } from "../config/llmModels.js"
 
 export const router = async (state) => {
-    const llm = getModel("router")
+    const llm = await getModel("router")
     const prompt = `You are an agent router.
     
 Available agents:
@@ -53,8 +53,19 @@ chat
 search
 coding
 pdf
+ppt
+vision
 
 User Query:
-
+    ${state.prompt}
 `
+
+const response = await llm.invoke(prompt)
+console.log(response)
+
+return {
+    ...state,
+    agent: response.content.trim().toLowerCase()
+}
+
 }
