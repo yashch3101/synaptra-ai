@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Code2, FileText, Globe, ImageIcon, MessageSquare, Mic, Paperclip, Presentation, Send, Zap } from 'lucide-react'
 import sendMessage from '../features/sendMessage'
 import { useDispatch, useSelector } from 'react-redux'
-import { addMessage } from "../redux/messageSlice"
+import { addMessage, setArtifacts } from "../redux/messageSlice"
 import { createConversation } from '../features/createConversation'
 import { addConversation, setConvTitle, setSelectedConversation } from "../redux/conversationSlice"
 import { updateConversation } from '../features/updateConversation'
@@ -38,6 +38,7 @@ function ChatInput() {
     setValue("")
 
     const data = await sendMessage(payload)
+    dispatch(setArtifacts(data.artifacts || []))
     dispatch(addMessage({role: "assistant", content: data?.answer, images:data?.images}))
     console.log(data)
   }
