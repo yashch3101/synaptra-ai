@@ -44,6 +44,13 @@ Rules:
 - Beautiful spacing
 - Single page unless user asks otherwise.
 
+IMAGES
+=============================
+
+For every <img> tag:
+- Use src="" (empty) or a clean placeholder, and ALWAYS write a clear, specific, 2-3 word English description in the alt attribute (e.g., alt="pepperoni pizza", alt="red sports car", alt="modern gym interior").
+- Always style images in CSS with width: 100%, height: 200px (or appropriate height), and object-fit: cover.
+
 Return ONLY valid JSON.
 
 Schema:
@@ -80,6 +87,7 @@ ${state.prompt}
         `
 
         const res = await llm.invoke(prompt)
+        console.log(res)
         const data = JSON.parse(res.content)
         return {
             ...state,

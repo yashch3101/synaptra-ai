@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  Check,
   Code2,
   Copy,
   Eye,
@@ -8,16 +9,18 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { easeInOut, motion } from "motion/react";
+import Editor from "@monaco-editor/react";
 
 function Artifact() {
   const [collapsed, setCollapsed] = useState(false);
   const { artifacts } = useSelector((state) => state.message);
   const [tab, setTab] = useState("code");
   const [activeFile, setActiveFile] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   if (artifacts.length == 0) return;
 
-  const file = artifacts[0]?.files[activeFile]?.content;
+  const file = artifacts[0]?.files[activeFile];
   const htmlFile = artifacts[0]?.files?.find((f) => f.name === "index.html");
   const cssFile = artifacts[0]?.files?.find((f) => f.name === "style.css");
   const jsFile = artifacts[0]?.files?.find((f) => f.name === "script.js");
@@ -29,6 +32,7 @@ function Artifact() {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
     <style>
       ${cssFile?.content || ""}
     </style>
@@ -37,11 +41,119 @@ function Artifact() {
   ${htmlFile?.content || ""}
 
     <script>
+      (async function() {
+        const imgs = document.querySelectorAll('img');
+        for (let i = 0; i < imgs.length; i++) {
+          const img = imgs[i];
+          const query = img.alt || 'modern architecture';
+          try {
+            const res = await fetch('https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=filetype:bitmap+' + encodeURIComponent(query) + '&gsrnamespace=6&gsrlimit=1&prop=imageinfo&iiprop=url&iiurlwidth=800&format=json&origin=*');
+            const data = await res.json();
+            const pages = data?.query?.pages;
+            if (pages) {
+              const firstPage = Object.values(pages)[0];
+              const realUrl = firstPage?.imageinfo?.[0]?.thumburl || firstPage?.imageinfo?.[0]?.url;
+              if (realUrl) {
+                img.src = realUrl;
+              }
+            }
+          } catch (e) {
+            img.src = 'https://picsum.photos/seed/' + (i + 10) + '/800/600';
+          }
+        }
+      })();
       ${jsFile?.content || ""}
     </script>
     
 </body>
 </html>`;
+
+const handleCopy = async () => {
+    await navigator.clipboard.writeText(file?.content || "");
+    setCopied(true);
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
+  }
+
+
+const detectLanguage = (fileName = "") => {
+  const name = fileName.toLowerCase()
+
+  if (name.endsWith(".html"))
+    return "html";
+
+  if (name.endsWith(".css"))
+    return "css";
+
+  if (name.endsWith(".js"))
+    return "javascript";
+
+  if (name.endsWith(".jsx"))
+    return "javascript";
+
+  if (name.endsWith(".ts"))
+    return "typescript";
+
+  if (name.endsWith(".tsx"))
+    return "typescript";
+
+  if (name.endsWith(".json"))
+    return "json";
+
+  if (name.endsWith(".py"))
+    return "python";
+
+  if (name.endsWith(".java"))
+    return "java";
+
+  if (name.endsWith(".c"))
+    return "c";
+
+  if (name.endsWith(".cpp"))
+    return "cpp";
+
+  if (name.endsWith(".cs"))
+    return "csharp";
+
+  if (name.endsWith(".rb"))
+    return "ruby";
+
+  if (name.endsWith(".php"))
+    return "php";
+
+  if (name.endsWith(".go"))
+    return "go";
+
+  if (name.endsWith(".rs"))
+    return "rust";
+
+  if (name.endsWith(".swift"))
+    return "swift";
+
+  if (name.endsWith(".kt") || name.endsWith(".kts"))
+    return "kotlin";
+
+  if (name.endsWith(".sh") || name.endsWith(".bash"))
+    return "shell";
+
+  if (name.endsWith(".sql"))
+    return "sql";
+
+  if (name.endsWith(".xml"))
+    return "xml";
+
+  if (name.endsWith(".yaml") || name.endsWith(".yml"))
+    return "yaml";
+
+  if (name.endsWith(".md"))
+    return "markdown";
+
+  if (name.endsWith(".txt"))
+    return "plaintext";
+
+  return "plaintext";
+}
 
   return (
     <motion.div
@@ -80,10 +192,11 @@ function Artifact() {
 
             <div className="flex items-center gap-1 shrink-0">
               <button
+              onClick={handleCopy}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-200
                     hover:bg-white/[0.05] rounded-lg transition-colors duration-150 bg-transparent border-none cursor-pointer"
               >
-                <Copy size={15} />
+                {copied?<Check size={15}/> : <Copy size={15} />}
               </button>
             </div>
 
@@ -142,10 +255,29 @@ function Artifact() {
               </motion.div>
             ) : (
               <motion.div
-                initial={{}}
-                animate={{}}
-                transition={{}}
-              ></motion.div>
+                initial={{ opacity: 0 }}
+                animate={{  opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className='w-full h-full'
+              >
+                <Editor 
+                  theme="vs-dark"
+                  language={detectLanguage(file?.name)}
+                  value={file?.content}
+                  options={{ 
+                    readOnly: true,
+                    minimap: { enabled: false },
+                    fontSize: 13,
+                    wordWrap: "on",
+                    automaticLayout: true,
+                    scrollBeyondLastLine: false,
+                    padding: { top: 16 },
+                    lineNumbers: "on",
+                    renderLineHighlight: "none",
+                   }}
+                />
+
+              </motion.div>
             )}
           </div>
         </div>
