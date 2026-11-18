@@ -1,1 +1,0 @@
-## Synaptra AI — An Intelligent Multi-Agent Conversational Platform
