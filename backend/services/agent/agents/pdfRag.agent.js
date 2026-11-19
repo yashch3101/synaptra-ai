@@ -13,7 +13,7 @@ export const pdfRag = async (state) => {
             data: buffer
         })
 
-        const result = pdf.getText()
+        const result = await pdf.getText()
         const text = result.text
 
         const splitter = new RecursiveCharacterTextSplitter({
@@ -27,7 +27,7 @@ export const pdfRag = async (state) => {
 
         const relevantDocs = await store.similaritySearch(state.prompt, 5)
 
-        const context = relevantDocs.map(d => d.pageContent).join("/n/n")
+        const context = relevantDocs.map(d => d.pageContent).join("\n\n")
 
         const llm = await getModel("pdf-rag")
 
@@ -53,7 +53,7 @@ new HumanMessage(`
 `)
         ]
 
-        const response = llm.invoke(messages)
+        const response = await llm.invoke(messages)
         await deductCredits(state.userId, "pdf")
 
         return {
