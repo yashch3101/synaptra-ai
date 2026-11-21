@@ -315,13 +315,12 @@ function SideBar() {
             )}
           </div>
         </div>
+      </div>
 
-            <BillingDrawer 
+      <BillingDrawer 
               open={showBilling}
               onClose={() => setShowBilling(false)}
             />
-
-      </div>
     </>
   );
 }
