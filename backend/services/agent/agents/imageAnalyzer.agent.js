@@ -1,14 +1,21 @@
-import { HumanMessage, SystemMessage } from "@langchain/core/messages"
-import { getModel } from "../config/llmModels.js"
-import fs from "fs/promises"
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { ChatOpenAI } from "@langchain/openai";
+import fs from "fs/promises";
 import { deductCredits } from "../utils/deductCredits.js";
 
 export const imageAnalyzer = async (state) => {
     try {
-        const llm = await getModel("imageAnalyzer")
+        const llm = new ChatOpenAI({
+            apiKey: process.env.OPENROUTER_API_KEY,
+            configuration: {
+                baseURL: "https://openrouter.ai/api/v1",
+            },
+            model: "openrouter/free",
+            temperature: 0.2,
+        });
 
-        const imageBuffer = await fs.readFile(state.file.path)
-        const base64Image = imageBuffer.toString("base64")
+        const imageBuffer = await fs.readFile(state.file.path);
+        const base64Image = imageBuffer.toString("base64");
 
         const messages = [
             new SystemMessage(
@@ -35,31 +42,31 @@ Rules:
                         },
                         {
                             type: "image_url",
-                            "image_url": {
+                            image_url: {
                                 url: `data:${state.file.mimetype};base64,${base64Image}`
                             }
                         }
                     ]
                 }
             )
-        ]
+        ];
 
-        const response = await llm.invoke(messages)
-        await deductCredits(state.userId, "vision")
+        const response = await llm.invoke(messages);
+        await deductCredits(state.userId, "vision");
         return {
             ...state,
             aiResponse: response.content
-        }
+        };
 
     } catch (error) {
-        console.log(error)
+        console.log(error);
         return {
             ...state,
-            aiResponse: "Failed to analyze file"
+            aiResponse: `Failed to analyze file: ${error?.message || "Unknown error"}`
+        };
+    } finally {
+        if (state?.file?.path) {
+            await fs.unlink(state.file.path).catch(() => {});
         }
     }
-
-    finally {
-        await fs.unlink(state.file.path)
-    }
-}
+};

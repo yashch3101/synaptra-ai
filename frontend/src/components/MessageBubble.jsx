@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import Markdown from "react-markdown";
-import { Check, Copy, ExternalLink, X } from "lucide-react";
+import { Check, Copy, ExternalLink, FileText, X } from "lucide-react";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
-function MessageBubble({ role, content, images }) {
+function MessageBubble({ role, content, images, fileName }) {
   const isUser = role === "user";
   const [lightBox, setLightBox] = useState(null);
   const [copiedCode, setCopiedCode] = useState("");
@@ -31,19 +31,32 @@ function MessageBubble({ role, content, images }) {
             : "text-slate-200 rounded-tl-sm"
         }`}
       >
-        {images.length > 0 && (
-          <div className="flex flex-wrap gap-3 mt-4">
+        {images?.length > 0 && (
+          <div className={`flex flex-wrap gap-2 ${content ? "mb-2" : ""}`}>
             {images.map((img, i) => (
               <img
                 key={i}
                 src={img}
+                alt="attachment"
                 onClick={() => setLightBox(img)}
                 loading="lazy"
                 onError={(e) => e.currentTarget.remove()}
-                className="w-40 h-28 rounded-xl object-cover border border-white/10 cursor-zoom-in
-                  hover:opacity-90 transition"
+                className={`${
+                  isUser
+                    ? "w-24 h-24 rounded-lg object-cover border border-white/20"
+                    : "w-44 h-32 rounded-xl object-cover border border-white/10"
+                } cursor-zoom-in hover:opacity-90 transition`}
               />
             ))}
+          </div>
+        )}
+
+        {fileName && (!images || images.length === 0) && (
+          <div className={`inline-flex items-center gap-2 rounded-xl border border-white/20 bg-black/20 px-3 py-2 ${content ? "mb-2" : ""}`}>
+            <FileText size={16} className="text-red-300 shrink-0" />
+            <span className="text-xs font-medium truncate max-w-[200px]">
+              {fileName}
+            </span>
           </div>
         )}
 
@@ -60,7 +73,7 @@ function MessageBubble({ role, content, images }) {
               <h3 className="text-lg font-semibold mt-3 mb-2">{children}</h3>
             ),
             p: ({ children }) => (
-              <p className="mb-3 whitespace-pre-wrap wrap break-words">
+              <p className={`${isUser ? "mb-0" : "mb-3"} whitespace-pre-wrap break-words`}>
                 {children}
               </p>
             ),

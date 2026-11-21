@@ -9,14 +9,14 @@ export const router = async (state) => {
         }
     }
 
-    if(state.file.mimetype === "application/pdf") {
+    if(state.file?.mimetype === "application/pdf") {
         return {
             ...state,
             agent: "pdfRag"
         }
     }
 
-    if(state.file.mimetype.startsWith("image/")) {
+    if(state.file?.mimetype?.startsWith("image/")) {
         return {
             ...state,
             agent: "imageAnalyzer"
@@ -86,7 +86,7 @@ const response = await llm.invoke(prompt)
 
 return {
     ...state,
-    agent: response.content.trim().toLowerCase()
+    agent: String(response?.content || "chat").trim().toLowerCase()
 }
 
 }
