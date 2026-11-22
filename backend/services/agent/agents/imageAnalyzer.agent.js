@@ -61,11 +61,11 @@ Rules:
         };
 
     } catch (error) {
-        console.log(error);
+        console.error("Error in imageAnalyzerAgent:", error)
         return {
             ...state,
-            aiResponse: `Failed to analyze file: ${error?.message || "Unknown error"}`
-        };
+            aiResponse: error?.data?.message || "failed to analyze image"
+        }
     } finally {
         if (state?.file?.path) {
             await fs.unlink(state.file.path).catch(() => {});

@@ -64,11 +64,10 @@ new HumanMessage(`
         }
 
     } catch (error) {
-        console.log(error)
-
+        console.error("Error in pdfRagAgent:", error)
         return {
             ...state,
-            aiResponse: "Failed to Analyze pdf"
+            aiResponse: error?.data?.message || "failed to analyze pdf"
         }
     } finally {
         fs.unlinkSync(state.file.path)

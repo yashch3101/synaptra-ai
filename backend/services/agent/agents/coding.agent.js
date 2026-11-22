@@ -1,11 +1,12 @@
-import { getModel } from "../config/llmModels.js"
+import { getModel } from "../config/llmModels.js";
 import { deductCredits } from "../utils/deductCredits.js";
-import { checkAgentLimit } from "../config/agentLimit.js"
+import { checkAgentLimit } from "../config/agentLimit.js";
 
 export const codingAgent = async (state) => {
-    await checkAgentLimit(state.userId, "coding")
-    const intentLlm = await getModel("intent")
-    const llm = await getModel("coding")
+  try {
+    await checkAgentLimit(state.userId, "coding");
+    const intentLlm = await getModel("intent");
+    const llm = await getModel("coding");
     const intentRes = await intentLlm.invoke(`
         You are an intent classifier.
 
@@ -21,10 +22,10 @@ DOCUMENTATION
 
 User Request:
 ${state.prompt}
-    `)
-    const intent = intentRes.content
-    if(intent == "CODE_GENERATION") {
-        const prompt = `
+    `);
+    const intent = intentRes.content;
+    if (intent == "CODE_GENERATION") {
+      const prompt = `
         You are SynaptraAI Coding Agent.
 
 Generate the requested project.
@@ -87,24 +88,24 @@ Rules:
 
 User Request:
 ${state.prompt}
-        `
+        `;
 
-        const res = await llm.invoke(prompt)
-        console.log(res)
-        const data = JSON.parse(res.content)
-        await deductCredits(state.userId, "coding")
-        return {
-            ...state,
-            aiResponse: "Code Generated Successfully.",
-            artifacts: [
-                {
-                    id: Date.now(),
-                    type: "Project",
-                    files: data.files || [],
-                    title: state.prompt
-                }
-            ]
-        }
+      const res = await llm.invoke(prompt);
+      console.log(res);
+      const data = JSON.parse(res.content);
+      await deductCredits(state.userId, "coding");
+      return {
+        ...state,
+        aiResponse: "Code Generated Successfully.",
+        artifacts: [
+          {
+            id: Date.now(),
+            type: "Project",
+            files: data.files || [],
+            title: state.prompt,
+          },
+        ],
+      };
     }
 
     const res = await llm.invoke(`
@@ -133,13 +134,21 @@ Use headings like:
 User Request:
 
 ${state.prompt}
-    `)
+    `);
 
-    const data = res.content
-    await deductCredits(state.userId, "coding")
+    const data = res.content;
+    await deductCredits(state.userId, "coding");
     return {
-        ...state,
-        aiResponse: data,
-        artifacts: []
-    }
-}
+      ...state,
+      aiResponse: data,
+      artifacts: [],
+    };
+  } catch (error) {
+    console.error("Error in codingAgent:", error)
+        return {
+            ...state,
+            aiResponse: error?.data?.message || "failed to generate code",
+            artifacts: []
+        }
+  }
+};

@@ -17,10 +17,12 @@ export const searchAgent = async (state) => {
             images: results.images
         }
     } catch (error) {
+        console.error("Error in searchAgent:", error)
         return {
             ...state,
             searchResults: [],
-            images: []
+            images: [],
+            aiResponse: error?.data?.message || "failed to generate search response"
         }
     }
 }

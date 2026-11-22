@@ -77,9 +77,10 @@ Formatting:
     aiResponse: response.content,
   };
   } catch (error) {
-    return {
-    ...state,
-    aiResponse: "❌ Failed to generate Response. Please try again."
-  };
+    console.error("Error in chatAgent:", error)
+        return {
+            ...state,
+            aiResponse: error?.data?.message || "failed to generate chat"
+        }
   }
 };

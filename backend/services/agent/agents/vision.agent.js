@@ -8,7 +8,7 @@ import { checkAgentLimit } from "../config/agentLimit.js"
 export const visionAgent = async (state) => {
 
     try {
-        await checkAgentLimit(state.userId, "vision")
+        await checkAgentLimit(state.userId, "image")
         const llm = await getModel("image")
     const res = await llm.invoke(`
         You are an elite AI image prompt engineer.
@@ -66,9 +66,10 @@ return {
 ⌛ Link expires in 24 hours.`
 }
     } catch (error) {
+        console.error("Error in visionAgent:", error)
         return {
-    ...state,
-    aiResponse:"❌ Failed to generate image. Please try again."
-}
+            ...state,
+            aiResponse: error?.data?.message || "failed to generate image"
+        }
     }
 }

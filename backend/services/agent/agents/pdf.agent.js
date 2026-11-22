@@ -66,7 +66,7 @@ _Link expires in 24 hours._`
         console.error("Error in pdfAgent:", error)
         return {
             ...state,
-            aiResponse: "Failed to generate PDF. Please try again later."
+            aiResponse: error?.data?.message || "failed to generate pdf"
         }
     }
 }

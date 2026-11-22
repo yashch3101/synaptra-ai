@@ -73,7 +73,7 @@ Link expires in 24 hours._`
         console.error("Error in pptAgent:", error)
         return {
             ...state,
-            aiResponse: "Failed to generate PPT.."
+            aiResponse: error?.data?.message || "failed to generate ppt"
         }
     }
 }
