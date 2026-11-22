@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react'
 import { Code2, FileText, Globe, ImageIcon, MessageSquare, Mic, Paperclip, Presentation, Send, X, Zap } from 'lucide-react'
 import sendMessage from '../features/sendMessage'
 import { useDispatch, useSelector } from 'react-redux'
-import { addMessage, setArtifacts } from "../redux/messageSlice"
+import { addMessage, setArtifacts, setIsLoading } from "../redux/messageSlice"
 import { createConversation } from '../features/createConversation'
 import { addConversation, setConvTitle, setSelectedConversation } from "../redux/conversationSlice"
 import { updateConversation } from '../features/updateConversation'
@@ -24,6 +24,7 @@ function ChatInput() {
   }
 
   const handleSendMessage = async () => {
+    dispatch(setIsLoading(true))
     if ((!value.trim() && !selectedFile) || isSending) return
 
     setIsSending(true)
@@ -70,6 +71,7 @@ function ChatInput() {
       }
 
       const data = await sendMessage(formData)
+      dispatch(setIsLoading(false))
 
       if (!data) {
         throw new Error("Empty response from server")

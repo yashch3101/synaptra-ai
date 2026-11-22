@@ -18,16 +18,38 @@ function Artifact() {
   const [tab, setTab] = useState("code");
   const [activeFile, setActiveFile] = useState(0);
   const [copied, setCopied] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  if (artifacts.length == 0) return;
+  if (artifacts.length == 0) return null;
 
-  const file = artifacts[0]?.files[activeFile];
+  const unescapeCode = (str = "") => {
+    if (typeof str !== "string") return "";
+    if (str.includes("\\n") || str.includes('\\"')) {
+      return str
+        .replace(/\\n/g, "\n")
+        .replace(/\\r/g, "")
+        .replace(/\\t/g, "\t")
+        .replace(/\\"/g, '"')
+        .replace(/\\'/g, "'");
+    }
+    return str;
+  };
+
+  const file = artifacts[0]?.files?.[activeFile];
   const htmlFile = artifacts[0]?.files?.find((f) => f.name === "index.html");
   const cssFile = artifacts[0]?.files?.find((f) => f.name === "style.css");
   const jsFile = artifacts[0]?.files?.find((f) => f.name === "script.js");
 
+  const cleanFileContent = unescapeCode(file?.content || "");
+  const cleanHtml = unescapeCode(htmlFile?.content || "");
+  const cleanCss = unescapeCode(cssFile?.content || "");
+  const cleanJs = unescapeCode(jsFile?.content || "");
+
   const canPreview = Boolean(htmlFile);
+  const isBabel =
+    cleanHtml.includes("babel") ||
+    cleanJs.includes("ReactDOM") ||
+    cleanJs.includes("jsx");
 
   const previewDoc = `<!DOCTYPE html>
 <html lang="en">
@@ -36,11 +58,11 @@ function Artifact() {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
     <style>
-      ${cssFile?.content || ""}
+      ${cleanCss}
     </style>
 </head>
 <body>
-  ${htmlFile?.content || ""}
+  ${cleanHtml}
 
     <script>
       (async function() {
@@ -64,110 +86,63 @@ function Artifact() {
           }
         }
       })();
-      ${jsFile?.content || ""}
+    </script>
+    <script ${isBabel ? 'type="text/babel"' : ""}>
+      ${cleanJs}
     </script>
 
 </body>
 </html>`;
 
-const handleCopy = async () => {
-    await navigator.clipboard.writeText(file?.content || "");
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(cleanFileContent);
     setCopied(true);
     setTimeout(() => {
       setCopied(false);
     }, 2000);
-  }
+  };
 
+  const detectLanguage = (fileName = "") => {
+    const name = fileName.toLowerCase();
 
-const detectLanguage = (fileName = "") => {
-  const name = fileName.toLowerCase()
+    if (name.endsWith(".html")) return "html";
+    if (name.endsWith(".css")) return "css";
+    if (name.endsWith(".js") || name.endsWith(".jsx")) return "javascript";
+    if (name.endsWith(".ts") || name.endsWith(".tsx")) return "typescript";
+    if (name.endsWith(".json")) return "json";
+    if (name.endsWith(".py")) return "python";
+    if (name.endsWith(".java")) return "java";
+    if (name.endsWith(".c")) return "c";
+    if (name.endsWith(".cpp")) return "cpp";
+    if (name.endsWith(".cs")) return "csharp";
+    if (name.endsWith(".rb")) return "ruby";
+    if (name.endsWith(".php")) return "php";
+    if (name.endsWith(".go")) return "go";
+    if (name.endsWith(".rs")) return "rust";
+    if (name.endsWith(".swift")) return "swift";
+    if (name.endsWith(".kt") || name.endsWith(".kts")) return "kotlin";
+    if (name.endsWith(".sh") || name.endsWith(".bash")) return "shell";
+    if (name.endsWith(".sql")) return "sql";
+    if (name.endsWith(".xml")) return "xml";
+    if (name.endsWith(".yaml") || name.endsWith(".yml")) return "yaml";
+    if (name.endsWith(".md")) return "markdown";
 
-  if (name.endsWith(".html"))
-    return "html";
-
-  if (name.endsWith(".css"))
-    return "css";
-
-  if (name.endsWith(".js"))
-    return "javascript";
-
-  if (name.endsWith(".jsx"))
-    return "javascript";
-
-  if (name.endsWith(".ts"))
-    return "typescript";
-
-  if (name.endsWith(".tsx"))
-    return "typescript";
-
-  if (name.endsWith(".json"))
-    return "json";
-
-  if (name.endsWith(".py"))
-    return "python";
-
-  if (name.endsWith(".java"))
-    return "java";
-
-  if (name.endsWith(".c"))
-    return "c";
-
-  if (name.endsWith(".cpp"))
-    return "cpp";
-
-  if (name.endsWith(".cs"))
-    return "csharp";
-
-  if (name.endsWith(".rb"))
-    return "ruby";
-
-  if (name.endsWith(".php"))
-    return "php";
-
-  if (name.endsWith(".go"))
-    return "go";
-
-  if (name.endsWith(".rs"))
-    return "rust";
-
-  if (name.endsWith(".swift"))
-    return "swift";
-
-  if (name.endsWith(".kt") || name.endsWith(".kts"))
-    return "kotlin";
-
-  if (name.endsWith(".sh") || name.endsWith(".bash"))
-    return "shell";
-
-  if (name.endsWith(".sql"))
-    return "sql";
-
-  if (name.endsWith(".xml"))
-    return "xml";
-
-  if (name.endsWith(".yaml") || name.endsWith(".yml"))
-    return "yaml";
-
-  if (name.endsWith(".md"))
-    return "markdown";
-
-  if (name.endsWith(".txt"))
     return "plaintext";
+  };
 
-  return "plaintext";
-}
+  const renderPanelContent = (onClose) => {
+    const isCollapsed = onClose ? false : collapsed;
 
-const renderPanelContent = (onClose) => {
-  return (
-    <>
-      {!collapsed ? (
+    return (
+      <>
+        {!isCollapsed ? (
           <div className="flex flex-col h-full bg-[#0d0f14]">
             <div className="h-14 px-4 border-b border-white/[0.06] flex items-center gap-3 shrink-0">
               <button
                 className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-500
                   hover:text-slate-200 hover:bg-white/[0.05] transition-colors duration-150 bg-transparent
                     border-none cursor-pointer shrink-0"
-                onClick={() => (onClose ?  onClose() : setCollapsed(true))}
+                onClick={() => (onClose ? onClose() : setCollapsed(true))}
               >
                 {onClose ? <X size={16} /> : <PanelRightClose size={16} />}
               </button>
@@ -187,11 +162,11 @@ const renderPanelContent = (onClose) => {
 
               <div className="flex items-center gap-1 shrink-0">
                 <button
-                onClick={handleCopy}
+                  onClick={handleCopy}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-200
                       hover:bg-white/[0.05] rounded-lg transition-colors duration-150 bg-transparent border-none cursor-pointer"
                 >
-                  {copied?<Check size={15}/> : <Copy size={15} />}
+                  {copied ? <Check size={15} /> : <Copy size={15} />}
                 </button>
               </div>
 
@@ -240,7 +215,7 @@ const renderPanelContent = (onClose) => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5 }}
-                  className='w-full h-full'
+                  className="w-full h-full"
                 >
                   <iframe
                     title="preview"
@@ -252,15 +227,15 @@ const renderPanelContent = (onClose) => {
               ) : (
                 <motion.div
                   initial={{ opacity: 0 }}
-                  animate={{  opacity: 1 }}
+                  animate={{ opacity: 1 }}
                   transition={{ duration: 0.5 }}
-                  className='w-full h-full'
+                  className="w-full h-full"
                 >
-                  <Editor 
+                  <Editor
                     theme="vs-dark"
                     language={detectLanguage(file?.name)}
-                    value={file?.content}
-                    options={{ 
+                    value={cleanFileContent}
+                    options={{
                       readOnly: true,
                       minimap: { enabled: false },
                       fontSize: 13,
@@ -272,7 +247,6 @@ const renderPanelContent = (onClose) => {
                       renderLineHighlight: "none",
                     }}
                   />
-
                 </motion.div>
               )}
             </div>
@@ -301,46 +275,46 @@ const renderPanelContent = (onClose) => {
             </div>
           </div>
         )}
-    </>
-  )
-}
+      </>
+    );
+  };
 
   return (
     <>
-
       <button
         onClick={() => setMobileOpen(true)}
-          className="lg:hidden fixed bottom-24 right-4 z-40 flex items-center gap-2 px-3.5 py-2
+        className="lg:hidden fixed bottom-24 right-4 z-40 flex items-center gap-2 px-3.5 py-2
           rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-[12px] font-medium shadow-lg
           shadow-indigo-500/20 border-none cursor-pointer transition-colors duration-150"
       >
-        <Code2 size={13}/>
+        <Code2 size={13} />
         View Code
       </button>
 
       <AnimatePresence>
-
-        {mobileOpen && 
+        {mobileOpen && (
           <>
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }} onClick={() => setMobileOpen(false)} className="lg:hidden fixed inset-0
-              z-50 bg-black/60 backdrop-blur-sm"/>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setMobileOpen(false)}
+              className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            />
 
-      <motion.div
-        initial={{ x: "100%" }}
-        animate={{ x: 0 }}
-        exit={{ x: "100%" }}
-        transition={{ duration: 0.25, ease: "easeInOut" }}
-        className="lg:hidden fixed inset-y-0 right-0 z-50 w-[88vw] max-w-[420px]
-        border-l border-white/[0.06] overflow-hidden"
-      >
-        {renderPanelContent(() => setMobileOpen(false))}
-      </motion.div>
-
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="lg:hidden fixed inset-y-0 right-0 z-50 w-[88vw] max-w-[420px]
+              border-l border-white/[0.06] overflow-hidden"
+            >
+              {renderPanelContent(() => setMobileOpen(false))}
+            </motion.div>
           </>
-        }
-
+        )}
       </AnimatePresence>
 
       <motion.div
@@ -352,9 +326,7 @@ const renderPanelContent = (onClose) => {
         }}
         className="hidden lg:flex h-full border-l border-white/[0.06] flex-col overflow-hidden shrink-0"
       >
-
         {renderPanelContent()}
-        
       </motion.div>
     </>
   );

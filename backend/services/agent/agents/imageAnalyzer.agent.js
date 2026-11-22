@@ -2,9 +2,11 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { ChatOpenAI } from "@langchain/openai";
 import fs from "fs/promises";
 import { deductCredits } from "../utils/deductCredits.js";
+import { checkAgentLimit } from "../config/agentLimit.js"
 
 export const imageAnalyzer = async (state) => {
     try {
+        await checkAgentLimit(state.userId, "image")
         const llm = new ChatOpenAI({
             apiKey: process.env.OPENROUTER_API_KEY,
             configuration: {

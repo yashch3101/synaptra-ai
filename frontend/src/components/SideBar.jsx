@@ -166,7 +166,7 @@ function SideBar() {
               className="text-[10px] font-medium text-indigo-400 bg-indigo-500/10 border
               border-indigo-500/20 px-2 py-0.5 rounded-full tracking-wide"
             >
-              free
+              {userData?.plan || "free"}
             </span>
 
             <button
@@ -277,7 +277,7 @@ function SideBar() {
                   </p>
 
                   <p className="text-[11px] text-slate-600 mt-px">
-                    {"Free Plan"}
+                    {`${userData?.plan}` || "free plan"}
                   </p>
                 </div>
 

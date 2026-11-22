@@ -1,7 +1,9 @@
 import { getModel } from "../config/llmModels.js"
 import { deductCredits } from "../utils/deductCredits.js";
+import { checkAgentLimit } from "../config/agentLimit.js"
 
 export const codingAgent = async (state) => {
+    await checkAgentLimit(state.userId, "coding")
     const intentLlm = await getModel("intent")
     const llm = await getModel("coding")
     const intentRes = await intentLlm.invoke(`
