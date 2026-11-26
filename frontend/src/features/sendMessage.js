@@ -4,7 +4,7 @@ async function sendMessage(payload) {
   try {
     const isFormData = payload instanceof FormData
     const { data } = await api.post("/api/agent/chat", payload, {
-      timeout: 30000,
+      timeout: 120000,
       headers: isFormData ? { "Content-Type": "multipart/form-data" } : undefined
     })
     return data
