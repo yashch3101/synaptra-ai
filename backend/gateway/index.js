@@ -29,7 +29,7 @@ app.get("/api/me", protect, getCurrentUser)
 
 app.get("/", (req, res) => {
     res.json({
-        message: "Gateway is running"
+        message: "Gateway is running v5"
     })
 })
 
